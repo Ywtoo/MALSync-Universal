@@ -71,13 +71,8 @@ export function urlToSlug(url: string): slugObject {
   const localMatch = url.match(localRegex);
   if (localMatch) {
     obj.path = {
-<<<<<<< Updated upstream
-      type: localMatch[2] as 'anime' | 'manga',
-      slug: `l:${localMatch[1]}::${encodeURIComponent(localMatch[3])}`,
-=======
       type: localMatch[2] as 'anime' | 'manga' | 'movie' | 'tv',
-      slug: `l:${localMatch[1]}::${localMatch[3]}`,
->>>>>>> Stashed changes
+      slug: `l:${localMatch[1]}::${encodeURIComponent(localMatch[3])}`,
     };
     obj.url = '';
     return obj;
