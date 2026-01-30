@@ -1,5 +1,5 @@
 export type Path = {
-  type: 'anime' | 'manga';
+  type: 'anime' | 'manga' | 'movie' | 'tv';
   slug: string;
 };
 
@@ -11,9 +11,9 @@ type slugObject = {
 const malRegex = /^https:\/\/myanimelist\.net\/(anime|manga)\/(\d+)(\/|$)/;
 const anilistRegex = /^https:\/\/anilist\.co\/(anime|manga)\/(\d+)(\/|$)/;
 const kitsuRegex = /^https:\/\/kitsu\.app\/(anime|manga)\/([^/]+)(\/|$)/;
-const simklRegex = /^https:\/\/simkl\.com\/(anime|manga)\/(\d+)(\/|$)/;
+const simklRegex = /^https:\/\/simkl\.com\/(anime|manga|movies|shows)\/(\d+)(\/|$)/;
 const shikiRegex = /^https:\/\/shikimori\.one\/(animes|mangas|ranobe)\/\D?(\d+)/;
-const localRegex = /^local:\/\/([^/]+)\/(anime|manga)\/([^/]+)(\/|$)/;
+const localRegex = /^local:\/\/([^/]+)\/(anime|manga|movie|tv)\/([^/]+)(\/|$)/;
 
 export function urlToSlug(url: string): slugObject {
   const obj: slugObject = {
@@ -49,8 +49,11 @@ export function urlToSlug(url: string): slugObject {
 
   const simklMatch = url.match(simklRegex);
   if (simklMatch) {
+    let type: 'anime' | 'manga' | 'movie' | 'tv' = simklMatch[1] as 'anime' | 'manga';
+    if (simklMatch[1] === 'movies') type = 'movie';
+    if (simklMatch[1] === 'shows') type = 'tv';
     obj.path = {
-      type: simklMatch[1] as 'anime' | 'manga',
+      type,
       slug: `s:${simklMatch[2]}`,
     };
     return obj;
@@ -68,8 +71,13 @@ export function urlToSlug(url: string): slugObject {
   const localMatch = url.match(localRegex);
   if (localMatch) {
     obj.path = {
+<<<<<<< Updated upstream
       type: localMatch[2] as 'anime' | 'manga',
       slug: `l:${localMatch[1]}::${encodeURIComponent(localMatch[3])}`,
+=======
+      type: localMatch[2] as 'anime' | 'manga' | 'movie' | 'tv',
+      slug: `l:${localMatch[1]}::${localMatch[3]}`,
+>>>>>>> Stashed changes
     };
     obj.url = '';
     return obj;
@@ -89,6 +97,12 @@ export function pathToUrl(path: Path): string {
     return `https://kitsu.app/${path.type}/${path.slug.substring(2)}`;
   }
   if (path.slug.startsWith('s:')) {
+    if (path.type === 'movie') {
+      return `https://simkl.com/movies/${path.slug.substring(2)}`;
+    }
+    if (path.type === 'tv') {
+      return `https://simkl.com/shows/${path.slug.substring(2)}`;
+    }
     return `https://simkl.com/${path.type}/${path.slug.substring(2)}`;
   }
   if (path.slug.startsWith('shi:')) {

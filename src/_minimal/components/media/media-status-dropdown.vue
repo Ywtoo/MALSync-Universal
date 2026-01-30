@@ -34,7 +34,7 @@ const props = defineProps({
     default: true,
   },
   type: {
-    type: String as PropType<'anime' | 'manga'>,
+    type: String as PropType<'anime' | 'manga' | 'movie' | 'tv'>,
     default: 'anime',
   },
 });

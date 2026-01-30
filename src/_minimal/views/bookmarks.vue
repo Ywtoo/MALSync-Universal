@@ -12,6 +12,14 @@
             value: 'manga',
             title: lang('Manga'),
           },
+          {
+            value: 'movie',
+            title: lang('Movie'),
+          },
+          {
+            value: 'tv',
+            title: lang('TVShow'),
+          },
         ]"
       />
       <MediaStatusDropdown
@@ -156,7 +164,7 @@ const router = useRouter();
 
 const props = defineProps({
   type: {
-    type: String as PropType<'anime' | 'manga'>,
+    type: String as PropType<'anime' | 'manga' | 'movie' | 'tv'>,
     default: 'anime',
   },
   state: {
@@ -167,14 +175,14 @@ const props = defineProps({
 
 const parameters = ref({
   state: Number(props.state),
-  type: props.type as 'anime' | 'manga',
+  type: props.type as 'anime' | 'manga' | 'movie' | 'tv',
 });
 const cacheList = ref([] as listElement[]);
 
 watch(
   () => props.type,
   value => {
-    parameters.value.type = value as 'anime' | 'manga';
+    parameters.value.type = value as 'anime' | 'manga' | 'movie' | 'tv';
   },
 );
 watch(
@@ -266,10 +274,21 @@ const options = bookmarkFormats.map(format => ({
 
 const theme = computed({
   get() {
-    return api.settings.get(`bookMarksList${props.type === 'manga' ? 'Manga' : ''}`);
+    if (props.type === 'manga') return api.settings.get('bookMarksListManga');
+    if (props.type === 'movie') return api.settings.get('bookMarksListMovie');
+    if (props.type === 'tv') return api.settings.get('bookMarksListTV');
+    return api.settings.get('bookMarksList');
   },
   set(value) {
-    api.settings.set(`bookMarksList${props.type === 'manga' ? 'Manga' : ''}`, value);
+    if (props.type === 'manga') {
+      api.settings.set('bookMarksListManga', value);
+    } else if (props.type === 'movie') {
+      api.settings.set('bookMarksListMovie', value);
+    } else if (props.type === 'tv') {
+      api.settings.set('bookMarksListTV', value);
+    } else {
+      api.settings.set('bookMarksList', value);
+    }
   },
 });
 

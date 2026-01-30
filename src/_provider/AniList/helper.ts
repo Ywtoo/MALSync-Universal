@@ -97,7 +97,9 @@ export function aniListToMal(anilistId: number, type: 'anime' | 'manga') {
     });
 }
 
-export function malToAnilist(malId: number, type: 'anime' | 'manga') {
+export function malToAnilist(malId: number, type: 'anime' | 'manga' | 'movie' | 'tv') {
+  // Convert movie/tv to anime for AniList API compatibility
+  const mappedType = type === 'movie' || type === 'tv' ? 'anime' : type;
   const query = `
   query ($id: Int, $type: MediaType) {
     Media (idMal: $id, type: $type) {
@@ -109,7 +111,7 @@ export function malToAnilist(malId: number, type: 'anime' | 'manga') {
 
   const variables = {
     id: malId,
-    type: type.toUpperCase(),
+    type: mappedType.toUpperCase(),
   };
 
   return api.request

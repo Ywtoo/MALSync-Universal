@@ -11,9 +11,11 @@ export interface releaseItemInterface {
 
 export async function predictionXhrGET(type: string, apiCacheKey: number | string | null) {
   if (!apiCacheKey) return {};
+  // Map movie and tv to anime for API compatibility
+  const mappedType = type === 'movie' || type === 'tv' ? 'anime' : type;
   const response = await api.request.xhr(
     'GET',
-    `https://api.malsync.moe/nc/mal/${type}/${apiCacheKey}/pr`,
+    `https://api.malsync.moe/nc/mal/${mappedType}/${apiCacheKey}/pr`,
   );
   return JSON.parse(response.responseText);
 }

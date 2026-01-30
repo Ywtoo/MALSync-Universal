@@ -95,7 +95,7 @@
       <HR />
       <Section class="stream-section">
         <OverviewStreaming
-          :type="props.type as 'anime'"
+          :type="props.type === 'tv' ? 'anime' : (props.type as 'anime' | 'manga' | 'movie')"
           :cache-key="singleRequest.data && !totalLoading ? singleRequest.data!.getCacheKey() : ''"
           :title="singleRequest.data ? singleRequest.data!.getTitle() : ''"
           :alternative-title="metaRequest.data?.alternativeTitle"
@@ -210,7 +210,7 @@ const open404 = () => {
 
 const props = defineProps({
   type: {
-    type: String as PropType<'anime' | 'manga'>,
+    type: String as PropType<'anime' | 'manga' | 'movie' | 'tv'>,
     required: true,
   },
   slug: {
@@ -231,7 +231,7 @@ const url = computed(() => {
 
 const parameters = ref({
   url,
-  type: props.type as 'anime' | 'manga',
+  type: props.type as 'anime' | 'manga' | 'movie' | 'tv',
 });
 
 const metaRequest = createRequest(parameters, async param => {

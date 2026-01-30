@@ -469,7 +469,7 @@ export function statusTag(status, type, id) {
   return false;
 }
 
-export function getStatusText(type: 'anime' | 'manga', state) {
+export function getStatusText(type: 'anime' | 'manga' | 'movie' | 'tv', state) {
   switch (state) {
     case 1:
       return api.storage.lang(`UI_Status_watching_${type}`);

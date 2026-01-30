@@ -6,7 +6,7 @@
 
 import { Component } from 'vue';
 
-export type contentType = 'anime' | 'manga';
+export type contentType = 'anime' | 'manga' | 'movie' | 'tv';
 
 export type syncMethod = 'normal' | 'listSync';
 

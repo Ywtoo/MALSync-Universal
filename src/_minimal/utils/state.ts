@@ -6,11 +6,15 @@ const STORAGE_KEY = 'VUE-MAL-SYNC-V2';
 const typeContext = ref('anime');
 const stateContext = ref(1);
 
-export function setTypeContext(value: 'anime' | 'manga') {
+export function setTypeContext(value: 'anime' | 'manga' | 'movie' | 'tv') {
   if (value === 'anime') {
     typeContext.value = 'anime';
   } else if (value === 'manga') {
     typeContext.value = 'manga';
+  } else if (value === 'movie') {
+    typeContext.value = 'movie';
+  } else if (value === 'tv') {
+    typeContext.value = 'tv';
   } else {
     throw `${value} not a valid State Context`;
   }

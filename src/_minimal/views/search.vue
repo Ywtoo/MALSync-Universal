@@ -12,6 +12,14 @@
             value: 'manga',
             title: lang('Manga'),
           },
+          {
+            value: 'movie',
+            title: lang('Movie'),
+          },
+          {
+            value: 'tv',
+            title: lang('TVShow'),
+          },
         ]"
       />
     </Section>
@@ -68,13 +76,13 @@ const router = useRouter();
 
 const props = defineProps({
   type: {
-    type: String as PropType<'anime' | 'manga'>,
+    type: String as PropType<'anime' | 'manga' | 'movie' | 'tv'>,
     required: true,
   },
 });
 
 const result = ref(route.query.s ? route.query.s.toString() : '');
-const type = ref(props.type.toString() as 'anime' | 'manga');
+const type = ref(props.type.toString() as 'anime' | 'manga' | 'movie' | 'tv');
 const parameters = ref({ result, type });
 
 const listRequest = createRequest(parameters, async param => {
@@ -85,7 +93,7 @@ const listRequest = createRequest(parameters, async param => {
 watch(
   () => props.type,
   value => {
-    type.value = value.toString() as 'anime' | 'manga';
+    type.value = value.toString() as 'anime' | 'manga' | 'movie' | 'tv';
   },
 );
 
@@ -95,7 +103,7 @@ watch(type, newValue => {
     params: { type: newValue },
     query: { s: route.query.s },
   });
-  setTypeContext(newValue as 'anime' | 'manga');
+  setTypeContext(newValue as 'anime' | 'manga' | 'movie' | 'tv');
 });
 
 watch(

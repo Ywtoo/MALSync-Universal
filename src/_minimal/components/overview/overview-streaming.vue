@@ -49,7 +49,7 @@ import { activeLinks, Quicklink, combinedLinks } from '../../../utils/quicklinks
 
 const props = defineProps({
   type: {
-    type: String as PropType<'anime' | 'manga'>,
+    type: String as PropType<'anime' | 'manga' | 'movie'>,
     default: 'anime',
   },
   cacheKey: {

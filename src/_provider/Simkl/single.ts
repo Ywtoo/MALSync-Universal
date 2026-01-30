@@ -31,8 +31,13 @@ export class Single extends SingleAbstract {
   protected datesSupport = false;
 
   protected handleUrl(url) {
-    if (url.match(/simkl\.com\/(anime|manga)\/\d*/i)) {
-      this.type = utils.urlPart(url, 3) === 'anime' ? 'anime' : 'manga';
+    if (url.match(/simkl\.com\/(anime|manga|movie|tv|show)\/\d*/i)) {
+      const urlPart = utils.urlPart(url, 3);
+      if (urlPart === 'anime') this.type = 'anime';
+      else if (urlPart === 'manga') this.type = 'manga';
+      else if (urlPart === 'movie') this.type = 'movie';
+      else if (urlPart === 'tv' || urlPart === 'show') this.type = 'tv';
+
       this.ids.simkl = parseInt(utils.urlPart(url, 4));
       if (this.type === 'manga') throw 'Simkl has no manga support';
       return;
@@ -167,6 +172,8 @@ export class Single extends SingleAbstract {
   }
 
   _getDisplayUrl() {
+    if (this.getType() === 'movie') return `https://simkl.com/movies/${this.ids.simkl}`;
+    if (this.getType() === 'tv') return `https://simkl.com/shows/${this.ids.simkl}`;
     return `https://simkl.com/${this.getType()}/${this.ids.simkl}`;
   }
 
@@ -217,15 +224,20 @@ export class Single extends SingleAbstract {
           this._onList = false;
           let el;
           if (de.simkl) {
+            // Use o endpoint correto com base no tipo de mídia
+            let apiEndpoint = 'anime';
+            if (this.type === 'movie') apiEndpoint = 'movies';
+            if (this.type === 'tv') apiEndpoint = 'shows';
+
             el = await this.call(
-              `https://api.simkl.com/anime/${de.simkl}`,
+              `https://api.simkl.com/${apiEndpoint}/${de.simkl}`,
               { extended: 'full' },
               true,
             );
-            if (!el) throw new NotFoundError('Anime not found');
+            if (!el) throw new NotFoundError(`${this.type} not found`);
           } else {
             el = await this.call('https://api.simkl.com/search/id', de, true);
-            if (!el?.length) throw new NotFoundError('Anime not found');
+            if (!el?.length) throw new NotFoundError(`${this.type} not found`);
             if (el[0].mal && el[0].mal.type && el[0].mal.type === 'Special')
               throw new Error('Is a special');
             el = el[0];
@@ -280,20 +292,26 @@ export class Single extends SingleAbstract {
       'curWatchedEp',
       this.curWatchedEp,
     );
+
+    // Determina o tipo correto para os payloads de API
+    const mediaType =
+      this.getType() === 'movie' ? 'movies' : this.getType() === 'tv' ? 'shows' : 'shows';
+
     // Status
     if (this.statusUpdate || !this.isOnList()) {
+      const payload = {};
+      payload[mediaType] = [
+        {
+          to: this.animeInfo.status,
+          ids: {
+            simkl: this.ids.simkl,
+          },
+        },
+      ];
+
       const response = await this.call(
         'https://api.simkl.com/sync/add-to-list',
-        JSON.stringify({
-          shows: [
-            {
-              to: this.animeInfo.status,
-              ids: {
-                simkl: this.ids.simkl,
-              },
-            },
-          ],
-        }),
+        JSON.stringify(payload),
         false,
         'POST',
       );
@@ -313,24 +331,25 @@ export class Single extends SingleAbstract {
             });
           }
 
-          const response = await this.call(
-            'https://api.simkl.com/sync/history',
-            JSON.stringify({
-              shows: [
+          const payload = {};
+          payload[mediaType] = [
+            {
+              ids: {
+                simkl: this.ids.simkl,
+              },
+              private_memo: this.animeInfo.private_memo,
+              seasons: [
                 {
-                  ids: {
-                    simkl: this.ids.simkl,
-                  },
-                  private_memo: this.animeInfo.private_memo,
-                  seasons: [
-                    {
-                      number: 1,
-                      episodes,
-                    },
-                  ],
+                  number: 1,
+                  episodes,
                 },
               ],
-            }),
+            },
+          ];
+
+          const response = await this.call(
+            'https://api.simkl.com/sync/history',
+            JSON.stringify(payload),
             false,
             'POST',
           );
@@ -343,23 +362,24 @@ export class Single extends SingleAbstract {
           });
         }
 
-        const response = await this.call(
-          'https://api.simkl.com/sync/history/remove',
-          JSON.stringify({
-            shows: [
+        const payload = {};
+        payload[mediaType] = [
+          {
+            ids: {
+              simkl: this.ids.simkl,
+            },
+            seasons: [
               {
-                ids: {
-                  simkl: this.ids.simkl,
-                },
-                seasons: [
-                  {
-                    number: 1,
-                    episodes,
-                  },
-                ],
+                number: 1,
+                episodes,
               },
             ],
-          }),
+          },
+        ];
+
+        const response = await this.call(
+          'https://api.simkl.com/sync/history/remove',
+          JSON.stringify(payload),
           false,
           'POST',
         );
@@ -372,34 +392,36 @@ export class Single extends SingleAbstract {
     // Rating
     if (this.ratingUpdate) {
       if (this.animeInfo.user_rating) {
+        const payload = {};
+        payload[mediaType] = [
+          {
+            rating: this.animeInfo.user_rating,
+            ids: {
+              simkl: this.ids.simkl,
+            },
+          },
+        ];
+
         const response = await this.call(
           'https://api.simkl.com/sync/ratings',
-          JSON.stringify({
-            shows: [
-              {
-                rating: this.animeInfo.user_rating,
-                ids: {
-                  simkl: this.ids.simkl,
-                },
-              },
-            ],
-          }),
+          JSON.stringify(payload),
           false,
           'POST',
         );
         this.logger.log('Rating response', response);
       } else {
+        const payload = {};
+        payload[mediaType] = [
+          {
+            ids: {
+              simkl: this.ids.simkl,
+            },
+          },
+        ];
+
         const response = await this.call(
           'https://api.simkl.com/sync/ratings/remove',
-          JSON.stringify({
-            shows: [
-              {
-                ids: {
-                  simkl: this.ids.simkl,
-                },
-              },
-            ],
-          }),
+          JSON.stringify(payload),
           false,
           'POST',
         );
@@ -421,17 +443,22 @@ export class Single extends SingleAbstract {
   protected errorHandling = helper.errorHandling;
 
   _delete() {
+    // Determina o tipo correto para os payloads de API
+    const mediaType =
+      this.getType() === 'movie' ? 'movies' : this.getType() === 'tv' ? 'shows' : 'shows';
+
+    const payload = {};
+    payload[mediaType] = [
+      {
+        ids: {
+          simkl: this.ids.simkl,
+        },
+      },
+    ];
+
     return this.call(
       'https://api.simkl.com/sync/history/remove',
-      JSON.stringify({
-        shows: [
-          {
-            ids: {
-              simkl: this.ids.simkl,
-            },
-          },
-        ],
-      }),
+      JSON.stringify(payload),
       false,
       'POST',
     );

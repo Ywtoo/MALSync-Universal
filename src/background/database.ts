@@ -31,6 +31,8 @@ export async function initDatabase() {
   db.version(1).stores({
     anime: '&uid, malId, cacheKey, title',
     manga: '&uid, malId, cacheKey, title',
+    movie: '&uid, malId, cacheKey, title',
+    tv: '&uid, malId, cacheKey, title',
     storage: '&key, value',
   });
 
@@ -51,10 +53,10 @@ export async function initDatabase() {
 }
 
 export async function indexUpdate() {
-  const types = ['anime', 'manga'];
+  const types = ['anime', 'manga', 'movie', 'tv'];
   const globalMode = await api.settings.getAsync('syncMode');
   for (let i = 0; i < types.length; i++) {
-    const type = types[i] as 'anime' | 'manga';
+    const type = types[i] as 'anime' | 'manga' | 'movie' | 'tv';
     const state = (await getKey(`update_${type}`)) as number;
     const mode = await getKey(`update_mode_${type}`);
 
@@ -84,9 +86,11 @@ export async function setKey(key: string, value: string | number) {
 const blocked = {
   anime: false,
   manga: false,
+  movie: false,
+  tv: false,
 };
 
-async function importList(type: 'anime' | 'manga'): Promise<void> {
+async function importList(type: 'anime' | 'manga' | 'movie' | 'tv'): Promise<void> {
   if (blocked[type]) {
     logger.log('Import already running');
     return;
@@ -125,7 +129,7 @@ async function importList(type: 'anime' | 'manga'): Promise<void> {
 
 export interface Entry {
   uid: number | string;
-  type: 'anime' | 'manga';
+  type: 'anime' | 'manga' | 'movie' | 'tv';
   title: string;
   malId: number;
   cacheKey: number | string;
@@ -138,33 +142,33 @@ export interface Entry {
 }
 
 export async function addEntry(entry: Entry) {
-  const table = entry.type === 'anime' ? db.table('anime') : db.table('manga');
+  const table = db.table(entry.type);
   return table.put(entry);
 }
 
 export async function getEntry(
-  type: 'anime' | 'manga',
+  type: 'anime' | 'manga' | 'movie' | 'tv',
   uid: number | string,
 ): Promise<undefined | Entry> {
-  const table = type === 'anime' ? db.table('anime') : db.table('manga');
+  const table = db.table(type);
   return table.get(uid);
 }
 
 export async function getEntryByMalId(
-  type: 'anime' | 'manga',
+  type: 'anime' | 'manga' | 'movie' | 'tv',
   malId: number,
 ): Promise<undefined | Entry> {
-  const table = type === 'anime' ? db.table('anime') : db.table('manga');
+  const table = db.table(type);
   return table.get({ malId });
 }
 
-export async function removeEntry(type: 'anime' | 'manga', uid: number | string) {
-  const table = type === 'anime' ? db.table('anime') : db.table('manga');
+export async function removeEntry(type: 'anime' | 'manga' | 'movie' | 'tv', uid: number | string) {
+  const table = db.table(type);
   return table.where('uid').equals(uid).delete();
 }
 
-async function importEntries(type: 'anime' | 'manga', entries: Entry[]) {
-  const table = type === 'anime' ? db.table('anime') : db.table('manga');
+async function importEntries(type: 'anime' | 'manga' | 'movie' | 'tv', entries: Entry[]) {
+  const table = db.table(type);
   await table.clear();
   return table.bulkPut(entries);
 }

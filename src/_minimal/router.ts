@@ -1,5 +1,6 @@
 import { createRouter, createWebHashHistory, Router, RouteRecordRaw } from 'vue-router';
 import { getUrlObj, setUrlObj } from './utils/state';
+import { contentType } from '../_provider/definitions';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -21,10 +22,10 @@ const routes: Array<RouteRecordRaw> = [
     path: '/book/:type/:state',
     name: 'Bookmarks',
     component: () => import('./views/bookmarks.vue'),
-    props: {
-      type: String,
-      state: Number,
-    },
+    props: route => ({
+      type: route.params.type as contentType,
+      state: Number(route.params.state),
+    }),
   },
   {
     path: '/:type/:slug',

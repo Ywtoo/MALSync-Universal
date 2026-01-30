@@ -12,7 +12,7 @@ export class Progress {
 
   constructor(
     protected cacheKey: string,
-    protected type: 'anime' | 'manga',
+    protected type: 'anime' | 'manga' | 'movie' | 'tv',
   ) {
     this.logger = con.m('progress').m(cacheKey.toString());
     return this;
